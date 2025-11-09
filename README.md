@@ -1,9 +1,45 @@
-# Study-Time-Predictor
-Faculty want to estimate how much time each student studies daily for better mentoring.
+# 📘 Study Time Predictor
 
-The objective of this project is to develop a regression model to predict student study time.
-This prediction is based on survey data, using the number of books read in the past year as a
-proxy for study hours. The primary goal is to identify students who may need additional
-academic support, enabling better and more targeted mentorship allocation. The model
-utilizes a set of features including reads_books, book_genre_top1, and
-screen_time_movies_series_hours_per_week.
+> 🔮 A machine learning–powered web app that predicts how much time a student studies daily, based on their reading habits and screen time.
+
+---
+
+## 🌐 Live Demo  
+🎯 **Try it here:** [Study Time Predictor on Render](https://study-time-predictor.onrender.com)
+
+---
+
+## 🧠 Project Overview
+Faculty often want to estimate how much each student studies daily for better mentoring.  
+This project builds a **regression model** that predicts study time using features like:
+- 📚 Number of books read per year  
+- 🎭 Favorite book genre  
+- 📺 Weekly screen time (movies/series)
+
+The app uses **Flask** for the backend and a simple HTML/CSS frontend.  
+It’s trained on sample survey data (`Test Data.csv`) and provides quick predictions in a web interface.
+
+---
+
+## 🧩 Tech Stack
+| Component | Technology |
+|------------|-------------|
+| **Frontend** | HTML, CSS (via Flask templates) |
+| **Backend** | Python, Flask |
+| **Machine Learning** | scikit-learn, pandas, joblib |
+| **Deployment** | Render (Free Web Service) |
+
+---
+
+## 🚀 How to Run Locally
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/iamsayakdas/Study-Time-Predictor.git
+cd Study-Time-Predictor
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Run the Flask app
+python app.py
