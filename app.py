@@ -2,7 +2,6 @@ import os
 import re
 from flask import Flask, render_template, request, flash, redirect, url_for, send_file
 import pandas as pd
-import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 import joblib
@@ -25,28 +24,27 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 def detect_columns(df):
     """
     Automatically detect key columns for:
-    - reads/books habit
-    - genre
-    - screen time
-    - target (books read)
+      - reads/books habit
+      - genre
+      - screen time
+      - target (books read)
     """
     col_map = {"reads": None, "genre": None, "screen": None, "target": None}
     for col in df.columns:
         name = col.strip().lower()
-        if re.search(r"read", name) and "past" not in name:
+        if re.search(r"\bread\b|\breads\b", name) and "past" not in name:
             col_map["reads"] = col
         elif re.search(r"genre|type|category", name):
             col_map["genre"] = col
-        elif re.search(r"screen|hour|time", name):
+        elif re.search(r"screen|hour|time|hrs", name):
             col_map["screen"] = col
-        elif re.search(r"target|book|past|output|score", name):
+        elif re.search(r"target|book|past|output|score|total", name):
             col_map["target"] = col
 
-    # Fill in missing columns with defaults
+    # Fallback: assign defaults if any column missing
     for key in col_map:
         if col_map[key] is None:
             col_map[key] = df.columns[min(len(df.columns) - 1, 0)]
-
     return col_map
 
 
@@ -62,21 +60,26 @@ def load_and_prepare_data(csv_path):
     screen_col = col_map["screen"]
     target_col = col_map["target"]
 
-    df = df[[reads_col, genre_col, screen_col, target_col]].copy()
+    # Select relevant columns safely
+    available_cols = [c for c in [reads_col, genre_col, screen_col, target_col] if c in df.columns]
+    df = df[available_cols].copy()
 
-    # Clean and prepare data
+    # Clean target column (convert to numeric)
     df[target_col] = pd.to_numeric(df[target_col], errors='coerce')
     df[screen_col] = pd.to_numeric(df[screen_col], errors='coerce').fillna(0)
+
+    # Fill missing categorical data
     df[reads_col] = df[reads_col].fillna("No")
     df[genre_col] = df[genre_col].fillna("Unknown")
+
+    # Drop rows with missing target values
     df = df.dropna(subset=[target_col])
 
-    # One-hot encode
+    # Encode categorical features
     df = pd.get_dummies(df, columns=[reads_col, genre_col], drop_first=True)
 
     X = df.drop(columns=[target_col])
     y = df[target_col]
-
     return X, y, df.columns.tolist()
 
 
@@ -84,19 +87,16 @@ def load_and_prepare_data(csv_path):
 # 🏋️‍♂️ Model Training and Saving
 # -------------------------------------------------------
 def train_and_save_model(csv_path=CSV_PATH):
-    X, y, cols = load_and_prepare_data(csv_path)
+    X, y, _ = load_and_prepare_data(csv_path)
     if len(X) < 2:
         raise RuntimeError("Not enough training data to train model.")
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
-    )
-
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     model = LinearRegression()
     model.fit(X_train, y_train)
-    joblib.dump({"model": model, "columns": X.columns.tolist()}, MODEL_PATH)
 
-    print("✅ Model retrained and saved.")
+    joblib.dump({"model": model, "columns": X.columns.tolist()}, MODEL_PATH)
+    print(f"✅ Model trained successfully from {csv_path} and saved to {MODEL_PATH}")
     return model, X.columns.tolist()
 
 
@@ -108,9 +108,11 @@ def load_model():
         data = joblib.load(MODEL_PATH)
         return data["model"], data["columns"]
     else:
+        print("⚙️ No existing model found — training a new one.")
         return train_and_save_model()
 
 
+# Load model once at startup
 model, model_columns = load_model()
 
 
@@ -120,42 +122,38 @@ model, model_columns = load_model()
 def prepare_input_dict(form):
     reads_input = form.get("reads", "No")
     genre_input = form.get("genre", "Unknown")
-
     try:
         screen_input = float(form.get("screen", 0))
-    except:
+    except ValueError:
         screen_input = 0.0
 
     input_dict = {c: 0 for c in model_columns}
 
-    # Detect screen column
-    screen_cols = [c for c in model_columns if re.search("screen|hour|time", c, re.I)]
+    # Detect and assign screen-time feature
+    screen_cols = [c for c in model_columns if re.search("screen|hour|time|hrs", c, re.I)]
     if screen_cols:
         input_dict[screen_cols[0]] = screen_input
 
-    # One-hot encoding for reads and genre
+    # Match categorical dummies
     for c in model_columns:
         if reads_input.lower() in c.lower():
             input_dict[c] = 1
         if genre_input.lower() in c.lower():
             input_dict[c] = 1
 
-    X_input = pd.DataFrame([input_dict], columns=model_columns)
-    return X_input
+    return pd.DataFrame([input_dict], columns=model_columns)
 
 
 # -------------------------------------------------------
-# 🌐 Routes
+# 🌐 Flask Routes
 # -------------------------------------------------------
 @app.route("/", methods=["GET"])
 def index():
-    # Choose the latest dataset
+    # Get latest uploaded CSV if exists
     latest_csv = CSV_PATH
     uploads = [f for f in os.listdir(UPLOAD_FOLDER) if f.endswith(".csv")]
     if uploads:
-        uploads.sort(
-            key=lambda f: os.path.getmtime(os.path.join(UPLOAD_FOLDER, f)), reverse=True
-        )
+        uploads.sort(key=lambda f: os.path.getmtime(os.path.join(UPLOAD_FOLDER, f)), reverse=True)
         latest_csv = os.path.join(UPLOAD_FOLDER, uploads[0])
 
     try:
@@ -163,46 +161,44 @@ def index():
         col_map = detect_columns(df)
         genres = sorted(df[col_map["genre"]].dropna().unique().tolist())
         reads_options = sorted(df[col_map["reads"]].dropna().unique().tolist())
-        detected_info = (
-            f"📊 Detected Columns → Reads: {col_map['reads']}, "
-            f"Genre: {col_map['genre']}, Screen: {col_map['screen']}, Target: {col_map['target']}"
-        )
+        detected_info = f"📊 Detected Columns → Reads: {col_map['reads']}, Genre: {col_map['genre']}, Screen: {col_map['screen']}, Target: {col_map['target']}"
     except Exception as e:
-        print("⚠️ Error loading dataset:", e)
+        print("⚠️ Error reading dataset:", e)
         genres, reads_options = ["Unknown"], ["No"]
-        detected_info = "⚠️ Could not detect column names (using defaults)."
+        detected_info = "⚠️ Could not detect column names — using defaults."
 
     if "Unknown" not in genres:
-        genres = ["Unknown"] + genres
+        genres.insert(0, "Unknown")
     if "No" not in reads_options:
-        reads_options = ["No"] + reads_options
+        reads_options.insert(0, "No")
 
-    return render_template(
-        "index.html",
-        genres=genres,
-        reads_options=reads_options,
-        prediction=False,
-        detected_info=detected_info,
-    )
+    return render_template("index.html",
+                           genres=genres,
+                           reads_options=reads_options,
+                           prediction=False,
+                           detected_info=detected_info)
 
 
 @app.route("/predict", methods=["POST"])
 def predict():
     global model, model_columns
     X_input = prepare_input_dict(request.form)
-    pred_books = float(model.predict(X_input)[0])
-    pred_books = max(0.0, pred_books)
-    est_daily_hours = round((pred_books * 8) / 365, 2)
+    try:
+        pred_books = float(model.predict(X_input)[0])
+    except Exception as e:
+        flash(f"❌ Prediction failed: {e}")
+        return redirect(url_for("index"))
 
-    return render_template(
-        "index.html",
-        prediction=True,
-        pred_books=round(pred_books, 2),
-        est_daily_hours=est_daily_hours,
-        genres=[],
-        reads_options=[],
-        detected_info="",
-    )
+    pred_books = max(0.0, pred_books)
+    est_daily_hours = round((pred_books * 8) / 365, 2)  # heuristic conversion
+
+    return render_template("index.html",
+                           prediction=True,
+                           pred_books=round(pred_books, 2),
+                           est_daily_hours=est_daily_hours,
+                           genres=[],
+                           reads_options=[],
+                           detected_info="")
 
 
 @app.route("/upload", methods=["POST"])
@@ -213,7 +209,7 @@ def upload_dataset():
 
     file = request.files["dataset"]
     if file.filename == "":
-        flash("⚠️ Please select a file before uploading.")
+        flash("⚠️ Please select a CSV file before uploading.")
         return redirect(url_for("index"))
 
     if not file.filename.lower().endswith(".csv"):
@@ -222,13 +218,15 @@ def upload_dataset():
 
     filepath = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(filepath)
+    print(f"📁 Uploaded dataset saved to: {filepath}")
 
     try:
         global model, model_columns
         model, model_columns = train_and_save_model(filepath)
         flash("✅ Dataset uploaded and model retrained successfully!")
     except Exception as e:
-        flash(f"❌ Error processing dataset: {e}")
+        flash(f"❌ Error retraining model: {e}")
+        print("❌ Exception:", e)
 
     return redirect(url_for("index"))
 
@@ -243,7 +241,7 @@ def download_model():
 
 
 # -------------------------------------------------------
-# 🚀 Main
+# 🚀 Main Entry Point
 # -------------------------------------------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
