@@ -5,7 +5,7 @@
 ---
 
 ## 🌐 Live Demo  
-🎯 **Try it here:** [Study Time Predictor on Render](https://study-time-predictor.onrender.com)
+🎯 **Try it here:** [Study Time Predictor on Render](https://study-time-predictor-zmsl.onrender.com)
 
 ---
 
