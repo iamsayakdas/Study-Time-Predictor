@@ -1,93 +1,99 @@
 <h1 align="center">🎓 Study Time Predictor</h1>
 
 <p align="center">
-  <em>Predict how much time students study daily — powered by Machine Learning & Flask</em>  
+  <em>AI-powered prediction of student study habits — built using Flask & Machine Learning</em>
 </p>
 
 <p align="center">
   <a href="https://study-time-predictor.onrender.com" target="_blank">
-    <img src="https://img.shields.io/badge/Live%20Demo-Visit%20Now-blue?style=for-the-badge&logo=google-chrome" alt="Live Demo" />
+    <img src="https://img.shields.io/badge/Live%20Demo-Click%20Here-4CAF50?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Live Demo"/>
   </a>
-  <img src="https://img.shields.io/badge/Machine%20Learning-LinearRegression-orange?style=for-the-badge&logo=scikitlearn" />
-  <img src="https://img.shields.io/badge/Framework-Flask-green?style=for-the-badge&logo=flask" />
+  <img src="https://img.shields.io/badge/Framework-Flask-black?style=for-the-badge&logo=flask&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Machine%20Learning-LinearRegression-FF9800?style=for-the-badge&logo=scikitlearn&logoColor=white"/>
 </p>
 
 ---
 
 ## 🧠 Overview
 
-**Study Time Predictor** is a web application that estimates how much time a student studies daily based on their reading habits and screen-time behavior.  
-It was developed as part of an academic project to help faculty understand student learning patterns and provide better mentorship.
+**Study Time Predictor** is a full-stack machine learning web application that predicts how long students study daily based on their reading habits, screen time, and interests.  
+It features an elegant, animated frontend and a live Flask backend deployed online using Render.
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-✅ **Machine Learning-based Predictions** — Uses a regression model trained on real survey data  
-✅ **Dataset Uploading** — Upload your own `.csv` file to retrain the model live  
-✅ **Download Model** — Download the trained `model.pkl` file  
-✅ **Modern UI** — Beautiful gradient background, responsive layout, and smooth animations  
-✅ **Live Deployment** — Hosted on Render for free public access  
-
----
-
-## 🌐 Live Demo
-
-🎯 **Try it now:**  
-👉 [https://study-time-predictor.onrender.com](https://study-time-predictor-zmsl.onrender.com)
+- 🤖 **AI-Powered Regression Model** — Predicts study hours using `scikit-learn`.
+- 📂 **Dataset Upload** — Upload custom CSV files and retrain the model live.
+- 💾 **Download Trained Model** — Instantly get your personalized `model.pkl`.
+- 🎨 **Modern Animated UI** — Gradient backgrounds, glassmorphism design, and smooth transitions.
+- 🌐 **Deployed Web App** — Available online for real-time testing.
 
 ---
 
-## ⚙️ Tech Stack
+## 🌍 Live Demo
 
-| Component | Technology Used |
-|------------|-----------------|
+🎯 Try it yourself:  
+👉 [https://study-time-predictor.onrender.com](https://study-time-predictor.onrender.com)
+
+---
+
+## 🧩 Tech Stack
+
+| Layer | Technology |
+|--------|-------------|
 | **Frontend** | HTML5, CSS3, JavaScript |
-| **Backend** | Python (Flask Framework) |
+| **Backend** | Python, Flask |
 | **Machine Learning** | scikit-learn, pandas, numpy |
-| **Deployment** | Render (Free Web Service) |
+| **Deployment** | Render (Free Hosting) |
+| **Version Control** | Git + GitHub |
 
 ---
 
-## 🧩 How It Works
+## ⚙️ How It Works
 
-1. Loads dataset (`Test Data.csv` or your uploaded file)  
-2. Preprocesses features — books read, genre, and screen time  
-3. Trains a `LinearRegression` model using scikit-learn  
-4. Exposes endpoints:
-   - `/predict` → for predictions  
-   - `/upload` → for dataset upload & retraining  
-   - `/download_model` → to download your trained model  
-5. Displays predictions with a clean UI and dynamic feedback
+1. Loads and cleans the dataset (`Test Data.csv` or user-uploaded).  
+2. Encodes features and trains a **Linear Regression** model.  
+3. Exposes endpoints:
+   - `/upload` → Upload CSV and retrain model  
+   - `/predict` → Predict study time  
+   - `/download_model` → Download trained model  
+4. Renders predictions beautifully in a web interface.
 
 ---
 
 ## 🚀 Run Locally
 
-Clone the repository and install dependencies:
-
 ```bash
+# Clone this repository
 git clone https://github.com/iamsayakdas/Study-Time-Predictor.git
 cd Study-Time-Predictor
 
-| Name            | Role                                       |
-| --------------- | ------------------------------------------ |
-| **Sayak Das**   | Team Lead • Model Development • Deployment |
-| **Sudip Ghosh** | Data Preprocessing • Testing               |
-| **Sayak Ghosh** | Frontend Design • Documentation            |
-
-
-🏫 Academic Project
-
-This project was created as part of an academic coursework on Machine Learning Applications in Education, demonstrating integration of regression models with full-stack web deployment.
-
-🪪 License & Copyright
-
-© 2025 Sayak Das, Sudip Ghosh, Sayak Ghosh
-All Rights Reserved.
-This project is open-sourced for educational and research purposes under the MIT License
-.
-
-<p align="center"> <em>“Learn smart. Predict smarter.”</em> 🌟 </p> ```
+# Install dependencies
 pip install -r requirements.txt
+
+
+## 👨‍💻 Project Team
+
+| Name | Role |
+|------|------|
+| **Sayak Das** | Project Lead • Model Development • Deployment |
+| **Sudip Ghosh** | Data Processing • Testing & Validation |
+| **Sayak Ghosh** | Frontend Design • Documentation |
+
+
+## 🏫 Academic Details
+
+📚 *Developed as part of an academic project on Machine Learning & Predictive Modeling.*  
+The goal was to integrate a predictive regression model within a user-friendly web interface and deploy it live for real-world usage.
+
+
+## 🪪 License & Copyright
+
+© **2025 Sayak Das, Sudip Ghosh, Sayak Ghosh**  
+All Rights Reserved.  
+
+This project is licensed under the [MIT License](LICENSE).  
+You are free to use and modify it for educational and research purposes, with proper credit to the authors.
+# Run the Flask app
 python app.py
