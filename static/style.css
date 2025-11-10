@@ -1,51 +1,114 @@
+/* Reset & base styles */
 body {
-  font-family: Arial, Helvetica, sans-serif;
-  background: #f4f7fb;
+  font-family: "Poppins", Arial, sans-serif;
+  background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
   color: #222;
   margin: 0;
   padding: 0;
+  min-height: 100vh;
 }
-.container {
-  max-width: 720px;
-  margin: 40px auto;
-  background: #fff;
-  padding: 28px;
-  border-radius: 10px;
-  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+
+/* Navbar */
+nav {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  text-align: center;
+  padding: 15px 0;
 }
-h1 {
-  margin: 0 0 10px;
+nav h1 {
+  margin: 0;
   font-size: 26px;
+  color: #2b2b2b;
 }
+
+/* Main container */
+.container {
+  max-width: 750px;
+  margin: 60px auto;
+  padding: 20px;
+}
+
+/* Card style */
+.card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  padding: 35px;
+  text-align: center;
+  animation: fadeIn 0.8s ease;
+}
+
+/* Inputs and form */
 .form {
   display: grid;
-  gap: 12px;
+  gap: 16px;
+  margin-top: 20px;
+  text-align: left;
 }
 .form label {
   font-weight: 600;
+  margin-bottom: 6px;
 }
-.form input[type=number], .form select {
+.form select,
+.form input[type=number] {
   padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #cfd8e3;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
 }
-button {
-  background: #3b82f6;
+.form select:focus,
+.form input:focus {
+  border-color: #5c6bc0;
+  box-shadow: 0 0 0 3px rgba(92,107,192,0.2);
+  outline: none;
+}
+
+/* Button */
+.btn {
+  display: inline-block;
+  background: linear-gradient(135deg, #5C6BC0, #3949AB);
   color: #fff;
-  padding: 10px 14px;
+  padding: 12px 24px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  margin-top: 15px;
+  transition: all 0.25s ease;
 }
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(92,107,192,0.3);
+}
+
+/* Result box */
 .result {
-  padding: 10px;
-  background: #eef6ff;
-  border-radius: 8px;
-  margin-bottom: 12px;
+  background: #f3f5ff;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 15px 0;
+  font-size: 17px;
 }
+
+/* Footer */
 footer {
-  margin-top: 14px;
-  color: #666;
-  font-size: 12px;
+  text-align: center;
+  margin-top: 40px;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Animation */
+.fade-in {
+  animation: fadeIn 1s ease-in;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
