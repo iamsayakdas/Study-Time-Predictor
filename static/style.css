@@ -206,3 +206,21 @@ input::placeholder {
     transform: translateY(0);
   }
 }
+.info-box {
+  background: rgba(255, 255, 255, 0.12);
+  border-left: 4px solid #00c6ff;
+  padding: 12px 15px;
+  margin-top: 18px;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 500;
+  backdrop-filter: blur(6px);
+  animation: fadeIn 1s ease-in-out;
+  box-shadow: 0 0 10px rgba(0, 198, 255, 0.3);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
