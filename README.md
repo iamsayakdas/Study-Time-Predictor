@@ -34,7 +34,7 @@ It features an elegant, animated frontend and a live Flask backend deployed onli
 ## 🌍 Live Demo
 
 🎯 Try it yourself:  
-👉 [https://study-time-predictor.onrender.com](https://study-time-predictor.onrender.com)
+👉 [https://study-time-predictor.onrender.com](https://study-time-predictor-zmsl.onrender.com)
 
 ---
 
