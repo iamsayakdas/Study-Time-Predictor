@@ -1,46 +1,69 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🎓 Study Time Predictor</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <nav>
-    <h1>📘 Study Time Predictor</h1>
-  </nav>
+  <!-- Loader Overlay -->
+  <div id="loader-overlay" class="loader-overlay">
+    <div class="loader"></div>
+    <p>Training model, please wait...</p>
+  </div>
 
-  <main class="container">
-    <section class="card fade-in">
+  <div class="bg-gradient"></div>
+  <div class="container fade-in">
+    <h1>📘 Study Time Predictor</h1>
+    <p class="tagline">Upload data • Train model • Predict study time</p>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for msg in messages %}
+            <p>{{ msg }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <section class="upload-card">
+      <h2>📂 Upload Your Dataset</h2>
+      <form action="/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
+        <input type="file" name="dataset" accept=".csv" required>
+        <button type="submit" class="btn-upload">📤 Upload & Retrain</button>
+      </form>
+
+      <p class="note">Upload a CSV file with columns for reading habits, genre, screen time, and target values.</p>
+
+      <div class="download-box">
+        <p>💾 Download the latest trained model:</p>
+        <a href="/download_model" class="btn">⬇ Download model.pkl</a>
+      </div>
+    </section>
+
+    <section class="predict-card">
       {% if prediction %}
         <h2>📊 Prediction Result</h2>
-        <div class="result">
-          <p><strong>📚 Estimated Books per Year:</strong> {{ pred_books }}</p>
-          <p><strong>⏰ Estimated Daily Study Hours:</strong> {{ est_daily_hours }} hrs/day</p>
-        </div>
+        <p><strong>Books per year:</strong> {{ pred_books }}</p>
+        <p><strong>Estimated daily study hours:</strong> {{ est_daily_hours }} hrs/day</p>
         <a class="btn" href="/">🔁 Try Again</a>
       {% else %}
-        <h2>🎯 Enter Your Details</h2>
-        <form action="/predict" method="post" class="form">
-          <label for="reads">{{ reads_col_label }}</label>
-          <select name="reads" id="reads" required>
-            <option value="No">No</option>
-            {% for r in reads_options %}
-              <option value="{{ r }}">{{ r }}</option>
-            {% endfor %}
+        <h2>🎯 Try the Default Model</h2>
+        <form action="/predict" method="POST" class="form">
+          <label>Reads books:</label>
+          <select name="reads" required>
+            <option>No</option><option>Sometimes</option><option>Regularly</option>
           </select>
 
-          <label for="genre">{{ genre_col_label }}</label>
-          <select name="genre" id="genre" required>
-            <option value="Unknown">Unknown</option>
-            {% for g in genres %}
-              <option value="{{ g }}">{{ g }}</option>
-            {% endfor %}
+          <label>Book genre:</label>
+          <select name="genre" required>
+            <option>Unknown</option><option>Fiction</option><option>Non-Fiction</option><option>Comics</option>
           </select>
 
-          <label for="screen">{{ screen_col_label }}</label>
-          <input type="number" step="0.1" min="0" max="200" name="screen" id="screen" placeholder="e.g., 10" required>
+          <label>Screen time (hours/week):</label>
+          <input type="number" step="0.1" name="screen" placeholder="e.g., 10" required>
 
           <button type="submit" class="btn">🚀 Predict</button>
         </form>
@@ -48,8 +71,20 @@
     </section>
 
     <footer>
-      <p>Made with ❤️ by <strong>Sayak Das</strong> | Powered by Flask & Machine Learning</p>
+      <p>Made with ❤️ by <strong>Sayak Das, Sudip Ghosh, Sayak Ghosh</strong> © 2025</p>
     </footer>
-  </main>
+  </div>
+
+  <!-- Loader Script -->
+  <script>
+    const uploadForm = document.getElementById("uploadForm");
+    const loaderOverlay = document.getElementById("loader-overlay");
+
+    if (uploadForm) {
+      uploadForm.addEventListener("submit", () => {
+        loaderOverlay.style.display = "flex";
+      });
+    }
+  </script>
 </body>
 </html>
