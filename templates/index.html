@@ -1,220 +1,105 @@
-import os
-from flask import Flask, render_template, request, flash, redirect, url_for, send_file
-import pandas as pd
-import numpy as np
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
-import joblib
-import re
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎓 Study Time Predictor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="animated-bg"></div>
 
-# -------------------------------------------------------
-# Configuration
-# -------------------------------------------------------
-CSV_PATH = "Test Data.csv"  # Default dataset
-MODEL_PATH = "model.pkl"
-UPLOAD_FOLDER = "uploads"
+  <header class="header fade-in">
+    <h1>🎓 Study Time Predictor</h1>
+    <p class="subtitle">AI-powered tool to estimate your daily study hours</p>
+  </header>
 
-app = Flask(__name__)
-app.secret_key = "supersecretkey"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+  <main class="main fade-in">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="flash">
+          {% for msg in messages %}
+            <p>{{ msg }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
 
-# -------------------------------------------------------
-# 🔍 Smart Column Auto-Detection
-# -------------------------------------------------------
-def detect_columns(df):
-    """
-    Automatically detect key columns for:
-    - reads/books habit
-    - genre
-    - screen time
-    - target (books read)
-    """
-    col_map = {"reads": None, "genre": None, "screen": None, "target": None}
+    <!-- Dataset Upload Section -->
+    <section class="glass">
+      <h2>📂 Upload Your Dataset</h2>
+      <form action="/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
+        <input type="file" name="dataset" accept=".csv" required>
+        <button type="submit" class="btn primary">📤 Upload & Retrain</button>
+      </form>
+      <p class="note">Upload a CSV with columns for reading habits, book genre, screen time, and study data.</p>
 
-    for col in df.columns:
-        name = col.strip().lower()
-        if re.search(r"read", name) and "past" not in name:
-            col_map["reads"] = col
-        elif re.search(r"genre|type|category", name):
-            col_map["genre"] = col
-        elif re.search(r"screen|hour|time", name):
-            col_map["screen"] = col
-        elif re.search(r"target|book|past|output|score", name):
-            col_map["target"] = col
+      <div class="download-box">
+        <p>💾 Download the latest trained model:</p>
+        <a href="/download_model" class="btn secondary">⬇ Download model.pkl</a>
+      </div>
 
-    for key in col_map:
-        if col_map[key] is None:
-            col_map[key] = df.columns[min(len(df.columns) - 1, 0)]
-    return col_map
+      {% if detected_info %}
+      <div class="info-box">
+        <p>{{ detected_info }}</p>
+      </div>
+      {% endif %}
+    </section>
 
-# -------------------------------------------------------
-# 🧠 Data Preparation
-# -------------------------------------------------------
-def load_and_prepare_data(csv_path):
-    df = pd.read_csv(csv_path)
-    col_map = detect_columns(df)
+    <!-- Prediction Form -->
+    <section class="glass">
+      {% if prediction %}
+        <h2>📊 Prediction Result</h2>
+        <div class="result-box">
+          <p><strong>📚 Books per year:</strong> {{ pred_books }}</p>
+          <p><strong>⏰ Estimated daily study hours:</strong> {{ est_daily_hours }} hrs/day</p>
+        </div>
+        <a href="/" class="btn primary">🔁 Predict Again</a>
+      {% else %}
+        <h2>🎯 Try Prediction</h2>
+        <form action="/predict" method="POST" class="form">
+          <label>📖 Reading Habit:</label>
+          <select name="reads" required>
+            {% for option in reads_options %}
+              <option>{{ option }}</option>
+            {% endfor %}
+          </select>
 
-    reads_col = col_map["reads"]
-    genre_col = col_map["genre"]
-    screen_col = col_map["screen"]
-    target_col = col_map["target"]
+          <label>📘 Book Genre:</label>
+          <select name="genre" required>
+            {% for g in genres %}
+              <option>{{ g }}</option>
+            {% endfor %}
+          </select>
 
-    df = df[[reads_col, genre_col, screen_col, target_col]].copy()
+          <label>💻 Screen Time (hours/week):</label>
+          <input type="number" step="0.1" name="screen" placeholder="e.g. 10" required>
 
-    df[target_col] = pd.to_numeric(df[target_col], errors='coerce')
-    df[screen_col] = pd.to_numeric(df[screen_col], errors='coerce').fillna(0)
-    df[reads_col] = df[reads_col].fillna("No")
-    df[genre_col] = df[genre_col].fillna("Unknown")
+          <button type="submit" class="btn primary">🚀 Predict</button>
+        </form>
+      {% endif %}
+    </section>
+  </main>
 
-    df = df.dropna(subset=[target_col])
-    df = pd.get_dummies(df, columns=[reads_col, genre_col], drop_first=True)
+  <footer class="footer fade-in">
+    <p>© 2025 Made with ❤️ by <strong>Sayak Das, Sudip Ghosh, Sayak Ghosh</strong></p>
+  </footer>
 
-    X = df.drop(columns=[target_col])
-    y = df[target_col]
-    return X, y, df.columns.tolist()
+  <!-- Loader overlay -->
+  <div id="loader-overlay" class="loader-overlay">
+    <div class="loader"></div>
+    <p>Training model... Please wait ⏳</p>
+  </div>
 
-# -------------------------------------------------------
-# 🏋️‍♂️ Model Training and Saving
-# -------------------------------------------------------
-def train_and_save_model(csv_path=CSV_PATH):
-    X, y, cols = load_and_prepare_data(csv_path)
-    if len(X) < 2:
-        raise RuntimeError("Not enough training data to train model.")
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    model = LinearRegression()
-    model.fit(X_train, y_train)
-
-    joblib.dump({"model": model, "columns": X.columns.tolist()}, MODEL_PATH)
-    print("✅ Model retrained and saved.")
-    return model, X.columns.tolist()
-
-# -------------------------------------------------------
-# 📦 Load Model
-# -------------------------------------------------------
-def load_model():
-    if os.path.exists(MODEL_PATH):
-        data = joblib.load(MODEL_PATH)
-        return data["model"], data["columns"]
-    else:
-        return train_and_save_model()
-
-model, model_columns = load_model()
-
-# -------------------------------------------------------
-# 🧩 Prepare User Input for Prediction
-# -------------------------------------------------------
-def prepare_input_dict(form):
-    reads_input = form.get("reads", "No")
-    genre_input = form.get("genre", "Unknown")
-    try:
-        screen_input = float(form.get("screen", 0))
-    except:
-        screen_input = 0.0
-
-    input_dict = {c: 0 for c in model_columns}
-
-    screen_cols = [c for c in model_columns if re.search("screen|hour|time", c, re.I)]
-    if screen_cols:
-        input_dict[screen_cols[0]] = screen_input
-
-    for c in model_columns:
-        if reads_input.lower() in c.lower():
-            input_dict[c] = 1
-        if genre_input.lower() in c.lower():
-            input_dict[c] = 1
-
-    X_input = pd.DataFrame([input_dict], columns=model_columns)
-    return X_input
-
-# -------------------------------------------------------
-# 🌐 Routes
-# -------------------------------------------------------
-
-@app.route("/", methods=["GET"])
-def index():
-    # Choose the latest dataset
-    latest_csv = CSV_PATH
-    uploads = [f for f in os.listdir(UPLOAD_FOLDER) if f.endswith(".csv")]
-    if uploads:
-        uploads.sort(key=lambda f: os.path.getmtime(os.path.join(UPLOAD_FOLDER, f)), reverse=True)
-        latest_csv = os.path.join(UPLOAD_FOLDER, uploads[0])
-
-    try:
-        df = pd.read_csv(latest_csv)
-        col_map = detect_columns(df)
-        genres = sorted(df[col_map["genre"]].dropna().unique().tolist())
-        reads_options = sorted(df[col_map["reads"]].dropna().unique().tolist())
-        detected_info = f"📊 Detected Columns → Reads: {col_map['reads']}, Genre: {col_map['genre']}, Screen: {col_map['screen']}, Target: {col_map['target']}"
-    except Exception as e:
-        print("⚠️ Error loading dataset:", e)
-        genres, reads_options = ['Unknown'], ['No']
-        detected_info = "⚠️ Could not detect column names (using defaults)."
-
-    if 'Unknown' not in genres:
-        genres = ['Unknown'] + genres
-    if 'No' not in reads_options:
-        reads_options = ['No'] + reads_options
-
-    return render_template("index.html",
-                           genres=genres,
-                           reads_options=reads_options,
-                           prediction=False,
-                           detected_info=detected_info)
-
-@app.route("/predict", methods=["POST"])
-def predict():
-    global model, model_columns
-    X_input = prepare_input_dict(request.form)
-    pred_books = float(model.predict(X_input)[0])
-    pred_books = max(0.0, pred_books)
-    est_daily_hours = round((pred_books * 8) / 365, 2)
-
-    return render_template("index.html",
-                           prediction=True,
-                           pred_books=round(pred_books, 2),
-                           est_daily_hours=est_daily_hours,
-                           genres=[],
-                           reads_options=[],
-                           detected_info="")
-
-@app.route("/upload", methods=["POST"])
-def upload_dataset():
-    if "dataset" not in request.files:
-        flash("⚠️ No file uploaded.")
-        return redirect(url_for("index"))
-
-    file = request.files["dataset"]
-    if file.filename == "":
-        flash("⚠️ Please select a file before uploading.")
-        return redirect(url_for("index"))
-
-    if not file.filename.lower().endswith(".csv"):
-        flash("❌ Only CSV files are allowed.")
-        return redirect(url_for("index"))
-
-    filepath = os.path.join(UPLOAD_FOLDER, file.filename)
-    file.save(filepath)
-
-    try:
-        global model, model_columns
-        model, model_columns = train_and_save_model(filepath)
-        flash("✅ Dataset uploaded and model retrained successfully!")
-    except Exception as e:
-        flash(f"❌ Error processing dataset: {e}")
-
-    return redirect(url_for("index"))
-
-@app.route("/download_model")
-def download_model():
-    if os.path.exists(MODEL_PATH):
-        return send_file(MODEL_PATH, as_attachment=True)
-    else:
-        flash("⚠️ Model file not found.")
-        return redirect(url_for("index"))
-
-# -------------------------------------------------------
-# 🚀 Main
-# -------------------------------------------------------
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
+  <script>
+    // Show loading overlay when uploading dataset
+    const uploadForm = document.getElementById("uploadForm");
+    const loader = document.getElementById("loader-overlay");
+    if (uploadForm) {
+      uploadForm.addEventListener("submit", () => {
+        loader.style.display = "flex";
+      });
+    }
+  </script>
+</body>
+</html>
