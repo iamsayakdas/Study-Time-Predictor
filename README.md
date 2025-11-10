@@ -34,7 +34,7 @@ It was developed as part of an academic project to help faculty understand stude
 ## 🌐 Live Demo
 
 🎯 **Try it now:**  
-👉 [https://study-time-predictor.onrender.com](https://study-time-predictor.onrender.com)
+👉 [https://study-time-predictor.onrender.com](https://study-time-predictor-zmsl.onrender.com)
 
 ---
 
