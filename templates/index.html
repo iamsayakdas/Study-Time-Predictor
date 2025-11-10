@@ -5,13 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🎓 Study Time Predictor</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/906/906175.png" type="image/png">
 </head>
 <body>
   <div class="animated-bg"></div>
 
   <header class="header fade-in">
     <h1>🎓 Study Time Predictor</h1>
-    <p class="subtitle">AI-powered tool to estimate your daily study hours</p>
+    <p class="subtitle">An AI-driven web app to analyze and predict your study habits</p>
   </header>
 
   <main class="main fade-in">
@@ -25,14 +26,14 @@
       {% endif %}
     {% endwith %}
 
-    <!-- Dataset Upload Section -->
+    <!-- Upload Section -->
     <section class="glass">
-      <h2>📂 Upload Your Dataset</h2>
+      <h2>📂 Upload a New Dataset</h2>
       <form action="/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
         <input type="file" name="dataset" accept=".csv" required>
-        <button type="submit" class="btn primary">📤 Upload & Retrain</button>
+        <button type="submit" class="btn primary">📤 Upload & Retrain Model</button>
       </form>
-      <p class="note">Upload a CSV with columns for reading habits, book genre, screen time, and study data.</p>
+      <p class="note">Upload a <b>CSV</b> with columns for reading habits, genre, screen time, and study performance.</p>
 
       <div class="download-box">
         <p>💾 Download the latest trained model:</p>
@@ -46,17 +47,17 @@
       {% endif %}
     </section>
 
-    <!-- Prediction Form -->
+    <!-- Prediction Section -->
     <section class="glass">
       {% if prediction %}
         <h2>📊 Prediction Result</h2>
         <div class="result-box">
-          <p><strong>📚 Books per year:</strong> {{ pred_books }}</p>
-          <p><strong>⏰ Estimated daily study hours:</strong> {{ est_daily_hours }} hrs/day</p>
+          <p><strong>📚 Estimated Books per Year:</strong> {{ pred_books }}</p>
+          <p><strong>⏰ Predicted Daily Study Time:</strong> {{ est_daily_hours }} hours/day</p>
         </div>
-        <a href="/" class="btn primary">🔁 Predict Again</a>
+        <a href="/" class="btn primary">🔁 Make Another Prediction</a>
       {% else %}
-        <h2>🎯 Try Prediction</h2>
+        <h2>🎯 Test the AI Predictor</h2>
         <form action="/predict" method="POST" class="form">
           <label>📖 Reading Habit:</label>
           <select name="reads" required>
@@ -65,39 +66,40 @@
             {% endfor %}
           </select>
 
-          <label>📘 Book Genre:</label>
+          <label>📘 Book Genre Preference:</label>
           <select name="genre" required>
-            {% for g in genres %}
-              <option>{{ g }}</option>
+            {% for genre in genres %}
+              <option>{{ genre }}</option>
             {% endfor %}
           </select>
 
-          <label>💻 Screen Time (hours/week):</label>
-          <input type="number" step="0.1" name="screen" placeholder="e.g. 10" required>
+          <label>💻 Average Screen Time (hours/week):</label>
+          <input type="number" step="0.1" name="screen" placeholder="e.g. 12.5" required>
 
-          <button type="submit" class="btn primary">🚀 Predict</button>
+          <button type="submit" class="btn primary">🚀 Predict Study Time</button>
         </form>
       {% endif %}
     </section>
   </main>
 
   <footer class="footer fade-in">
-    <p>© 2025 Made with ❤️ by <strong>Sayak Das, Sudip Ghosh, Sayak Ghosh</strong></p>
+    <p>Made with ❤️ by <strong>Sayak Das</strong>, <strong>Sudip Ghosh</strong>, and <strong>Sayak Ghosh</strong> © 2025</p>
+    <p>All rights reserved. Powered by Flask & Machine Learning 🤖</p>
   </footer>
 
-  <!-- Loader overlay -->
+  <!-- Loader -->
   <div id="loader-overlay" class="loader-overlay">
     <div class="loader"></div>
-    <p>Training model... Please wait ⏳</p>
+    <p>Training your model... please wait ⏳</p>
   </div>
 
   <script>
-    // Show loading overlay when uploading dataset
     const uploadForm = document.getElementById("uploadForm");
-    const loader = document.getElementById("loader-overlay");
+    const loaderOverlay = document.getElementById("loader-overlay");
+
     if (uploadForm) {
       uploadForm.addEventListener("submit", () => {
-        loader.style.display = "flex";
+        loaderOverlay.style.display = "flex";
       });
     }
   </script>
