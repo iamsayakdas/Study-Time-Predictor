@@ -2,50 +2,54 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Study Time Predictor</title>
+  <title>🎓 Study Time Predictor</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <div class="container">
-    <h1>Study-Time Predictor</h1>
-    <p>Predict your estimated daily study time based on your reading and screen habits.</p>
+  <nav>
+    <h1>📘 Study Time Predictor</h1>
+  </nav>
 
-    {% if prediction %}
-      <div class="result">
-        <h2>Prediction</h2>
-        <p><strong>Estimated books per year:</strong> {{ pred_books }}</p>
-        <p><strong>Estimated daily study hours:</strong> {{ est_daily_hours }} hrs/day</p>
-        <a href="/">Try again</a>
-      </div>
-    {% else %}
-      <form action="/predict" method="post" class="form">
-        <label for="reads">{{ reads_col_label }}</label>
-        <select name="reads" id="reads" required>
-          <option value="No">No</option>
-          {% for r in reads_options %}
-            <option value="{{ r }}">{{ r }}</option>
-          {% endfor %}
-        </select>
+  <main class="container">
+    <section class="card fade-in">
+      {% if prediction %}
+        <h2>📊 Prediction Result</h2>
+        <div class="result">
+          <p><strong>📚 Estimated Books per Year:</strong> {{ pred_books }}</p>
+          <p><strong>⏰ Estimated Daily Study Hours:</strong> {{ est_daily_hours }} hrs/day</p>
+        </div>
+        <a class="btn" href="/">🔁 Try Again</a>
+      {% else %}
+        <h2>🎯 Enter Your Details</h2>
+        <form action="/predict" method="post" class="form">
+          <label for="reads">{{ reads_col_label }}</label>
+          <select name="reads" id="reads" required>
+            <option value="No">No</option>
+            {% for r in reads_options %}
+              <option value="{{ r }}">{{ r }}</option>
+            {% endfor %}
+          </select>
 
-        <label for="genre">{{ genre_col_label }}</label>
-        <select name="genre" id="genre" required>
-          <option value="Unknown">Unknown</option>
-          {% for g in genres %}
-            <option value="{{ g }}">{{ g }}</option>
-          {% endfor %}
-        </select>
+          <label for="genre">{{ genre_col_label }}</label>
+          <select name="genre" id="genre" required>
+            <option value="Unknown">Unknown</option>
+            {% for g in genres %}
+              <option value="{{ g }}">{{ g }}</option>
+            {% endfor %}
+          </select>
 
-        <label for="screen">{{ screen_col_label }}</label>
-        <input type="number" step="0.1" min="0" max="200" name="screen" id="screen" placeholder="e.g., 10" required>
+          <label for="screen">{{ screen_col_label }}</label>
+          <input type="number" step="0.1" min="0" max="200" name="screen" id="screen" placeholder="e.g., 10" required>
 
-        <button type="submit">Predict</button>
-      </form>
-    {% endif %}
+          <button type="submit" class="btn">🚀 Predict</button>
+        </form>
+      {% endif %}
+    </section>
 
     <footer>
-      <small>Note: Prediction is based on your inputs using a trained regression model.</small>
+      <p>Made with ❤️ by <strong>Sayak Das</strong> | Powered by Flask & Machine Learning</p>
     </footer>
-  </div>
+  </main>
 </body>
 </html>
