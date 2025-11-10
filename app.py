@@ -37,16 +37,14 @@ def detect_columns(df):
             col_map["reads"] = col
         elif re.search(r"genre|type|category", name):
             col_map["genre"] = col
-        elif re.search(r"screen|hours|time", name):
+        elif re.search(r"screen|hour|time", name):
             col_map["screen"] = col
         elif re.search(r"target|book|past|output|score", name):
             col_map["target"] = col
 
-    # Fallbacks if not found
     for key in col_map:
         if col_map[key] is None:
-            col_map[key] = df.columns[min(len(df.columns) - 1, 0)]  # fallback to first column
-
+            col_map[key] = df.columns[min(len(df.columns) - 1, 0)]
     return col_map
 
 # -------------------------------------------------------
@@ -147,9 +145,11 @@ def index():
         col_map = detect_columns(df)
         genres = sorted(df[col_map["genre"]].dropna().unique().tolist())
         reads_options = sorted(df[col_map["reads"]].dropna().unique().tolist())
+        detected_info = f"📊 Detected Columns → Reads: {col_map['reads']}, Genre: {col_map['genre']}, Screen: {col_map['screen']}, Target: {col_map['target']}"
     except Exception as e:
         print("⚠️ Error loading dataset:", e)
         genres, reads_options = ['Unknown'], ['No']
+        detected_info = "⚠️ Could not detect column names (using defaults)."
 
     if 'Unknown' not in genres:
         genres = ['Unknown'] + genres
@@ -159,7 +159,8 @@ def index():
     return render_template("index.html",
                            genres=genres,
                            reads_options=reads_options,
-                           prediction=False)
+                           prediction=False,
+                           detected_info=detected_info)
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -174,7 +175,8 @@ def predict():
                            pred_books=round(pred_books, 2),
                            est_daily_hours=est_daily_hours,
                            genres=[],
-                           reads_options=[])
+                           reads_options=[],
+                           detected_info="")
 
 @app.route("/upload", methods=["POST"])
 def upload_dataset():
